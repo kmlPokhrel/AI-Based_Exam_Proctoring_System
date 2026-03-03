@@ -6,7 +6,8 @@ import cv2
 import base64
 from PIL import Image
 from io import BytesIO   
-from gaze_tracking import GazeTracking
+
+from gaze_tracking.gaze_tracking import GazeTracking
 from tensorflow.keras import Model
 from tensorflow.keras.layers import (
     Add,
