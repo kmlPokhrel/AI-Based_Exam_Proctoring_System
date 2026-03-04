@@ -20,3 +20,5 @@ nltk
 coolname
 object_detection
 Pillow
+Flask-Session
+dlib
