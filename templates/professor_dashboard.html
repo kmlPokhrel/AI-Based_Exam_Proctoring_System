@@ -446,7 +446,7 @@
 
       <!-- Logout -->
       <li class="nav-item">
-        <a href="#" onclick="return funLogout()" class="btn-sidebar-logout">
+        <a href="javascript:void(0)" onclick="funLogout()" class="btn-sidebar-logout">
           <span class="sidebar-icon"><i class="fas fa-sign-out-alt"></i></span>
           Logout
         </a>
@@ -470,7 +470,7 @@
     <div class="user-pill">
       <img src="{{ url_for('static', filename='user-profile.png') }}" alt="profile">
       <span class="user-name">{{ session.name }}</span>
-      <a href="#" onclick="return funLogout()" class="btn-top-logout">
+      <a href="javascript:void(0)" onclick="funLogout()" class="btn-top-logout">
         <i class="fas fa-sign-out-alt mr-1"></i>Logout
       </a>
     </div>
@@ -533,7 +533,15 @@
 
   // ── Logout ──
   function funLogout() {
-    swal.fire({
+    if (typeof Swal === 'undefined') {
+      var form = document.createElement('form');
+      form.method = 'POST';
+      form.action = '/logout';
+      document.body.appendChild(form);
+      form.submit();
+      return;
+    }
+    Swal.fire({
       title: 'Are you sure?',
       text: 'Do you really want to logout?',
       icon: 'warning',
@@ -545,19 +553,13 @@
       reverseButtons: true
     }).then(function (result) {
       if (result.isConfirmed) {
-        $.ajax({
-          type: 'POST',
-          url: '/logout',
-          success: function (response) {
-            if (response === 'success') window.location.href = '/';
-          }
-        });
-        swal.fire('Logged out!', 'You have been signed out.', 'success');
-      } else if (result.dismiss === Swal.DismissReason.cancel) {
-        swal.fire('Cancelled', 'Logout cancelled.', 'info');
+        var form = document.createElement('form');
+        form.method = 'POST';
+        form.action = '/logout';
+        document.body.appendChild(form);
+        form.submit();
       }
     });
-    return false;
   }
 
   // ── Bootstrap 4 collapse for sidebar submenu ──

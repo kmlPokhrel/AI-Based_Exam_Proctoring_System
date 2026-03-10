@@ -26,6 +26,9 @@ from wtforms.fields.html5 import DateField
 from wtforms.validators import ValidationError, NumberRange
 from flask_session import Session
 from flask_cors import CORS, cross_origin
+from dotenv import load_dotenv
+import os
+load_dotenv()
 import camera
 
 app = Flask(__name__)
@@ -39,8 +42,8 @@ app.config['MYSQL_CURSORCLASS'] = 'DictCursor'
 
 app.config['MAIL_SERVER']='smtp.stackmail.com'
 app.config['MAIL_PORT'] = 587
-app.config['MAIL_USERNAME'] = 'care@youremail.com'
-app.config['MAIL_PASSWORD'] = 'password'
+app.config['MAIL_USERNAME'] = 'abhishek.pathak01111@gmail.com'
+app.config['MAIL_PASSWORD'] = 'plha brux uyhv kmip'
 app.config['MAIL_USE_TLS'] = True
 app.config['MAIL_USE_SSL'] = False
 
@@ -275,7 +278,7 @@ def report_student():
 @user_role_professor
 def report_professor_email():
 	if request.method == 'POST':
-		careEmail = "narender.rk10@gmail.com"
+		careEmail = "abhishek.pathak01111@gmail.com"
 		cname = session['name']
 		cemail = session['email']
 		ptype = request.form['prob_type']
@@ -290,7 +293,7 @@ def report_professor_email():
 @user_role_student
 def report_student_email():
 	if request.method == 'POST':
-		careEmail = "narender.rk10@gmail.com"
+		careEmail = "abhishek.pathak01111@gmail.com"
 		cname = session['name']
 		cemail = session['email']
 		ptype = request.form['prob_type']
@@ -304,7 +307,7 @@ def report_student_email():
 @app.route('/contact', methods=['GET','POST'])
 def contact():
 	if request.method == 'POST':
-		careEmail = "narender.rk10@gmail.com"
+		careEmail = "abhishek.pathak01111@gmail.com"
 		cname = request.form['cname']
 		cemail = request.form['cemail']
 		cquery = request.form['cquery']
@@ -395,18 +398,24 @@ def register():
         cur = mysql.connection.cursor()
         
         existing = cur.execute('SELECT * FROM users WHERE email = %s', [email])
+        cur.close()
         if existing > 0:
             flash("Email already registered!", "danger")
             return render_template('register.html')
-        ar = cur.execute('INSERT INTO users(name, email, password, user_type, user_image, user_login) values(%s,%s,%s,%s,%s,%s)', 
-                         (name, email, password, user_type, imgdata, 0))
-        mysql.connection.commit()
-        cur.close()
-        if ar > 0:
-            flash("Registration successful! Please login.", "success")
-            return redirect(url_for('login'))
-        else:
-            flash("Error occurred! Try again.", "danger")
+        
+        
+        sesOTP = generateOTP()
+        session['tempOTP'] = sesOTP
+        session['tempName'] = name
+        session['tempEmail'] = email
+        session['tempPassword'] = password
+        session['tempUT'] = user_type
+        session['tempImage'] = imgdata
+        
+        msg = Message('MyProctor.ai - OTP Verification', sender=sender, recipients=[email])
+        msg.body = "Your OTP for registration is: " + sesOTP
+        mail.send(msg)
+        return redirect(url_for('verifyEmail'))
     return render_template('register.html')
 
 @app.route('/login', methods=['GET','POST'])
@@ -450,7 +459,7 @@ def login():
 				else:
 					return redirect(url_for('professor_index'))
 			else:
-				error = 'Image verified nahi hua!'
+				error = 'Image verification failed!'
 				return render_template('login.html', error=error)
 		else:
 			error = 'Email not found!'
@@ -472,16 +481,16 @@ def verifyEmail():
 			cur = mysql.connection.cursor()
 			ar = cur.execute('INSERT INTO users(name, email, password, user_type, user_image, user_login) values(%s,%s,%s,%s,%s,%s)', (dbName, dbEmail, dbPassword, dbUser_type, dbImgdata,0))
 			mysql.connection.commit()
-			if ar > 0:
-				flash("Thanks for registering! You are sucessfully verified!.")
-				return  redirect(url_for('login'))
-			else:
-				flash("Error Occurred!")
-				return  redirect(url_for('login')) 
 			cur.close()
 			session.clear()
+			if ar > 0:
+				flash("Thanks for registering! You are sucessfully verified!.")
+				return redirect(url_for('login'))
+			else:
+				flash("Error Occurred!")
+				return redirect(url_for('login'))
 		else:
-			return render_template('register.html',error="OTP is incorrect.")
+			return render_template('verifyEmail.html', error="OTP is incorrect.")
 	return render_template('verifyEmail.html')
 
 @app.route('/changepassword', methods=["GET", "POST"])
@@ -516,14 +525,18 @@ def changePassword():
 
 @app.route('/logout', methods=["GET", "POST"])
 def logout():
-	cur = mysql.connection.cursor()
-	lbr = cur.execute('UPDATE users set user_login = 0 where email = %s and uid = %s',(session['email'],session['uid']))
-	mysql.connection.commit()
-	if lbr > 0:
-		session.clear()
-		return "success"
-	else:
-		return "error"
+    try:
+        if 'email' in session and 'uid' in session:
+            cur = mysql.connection.cursor()
+            cur.execute('UPDATE users set user_login = 0 where email = %s and uid = %s',
+                       (session['email'], session['uid']))
+            mysql.connection.commit()
+            cur.close()
+    except:
+        pass  
+    finally:
+        session.clear()
+    return redirect(url_for('index'))
 
 def examcreditscheck():
 	cur = mysql.connection.cursor()
@@ -1451,7 +1464,7 @@ def give_test():
 				return redirect(url_for('give_test'))
 				cur.close()
 			else:
-				flash('Image not Verified', 'danger')
+				flash('Face verification failed! Please try again.', 'danger')
 				return redirect(url_for('give_test'))
 	return render_template('give_test.html', form = form)
 
@@ -1487,7 +1500,7 @@ def test(testid):
 				cur = mysql.connection.cursor()
 				results = cur.execute('SELECT * from students where test_id =%s and qid = %s and email = %s', (testid, qid, session['email']))
 				if results > 0:
-					cur.execute('UPDATE students set ans = %s where test_id = %s and qid = %s and email = %s', (testid, qid, session['email']))
+					cur.execute('UPDATE students set ans = %s where test_id = %s and qid = %s and email = %s', (ans, testid, qid, session['email']))
 					mysql.connection.commit()
 					cur.close()
 				else:
