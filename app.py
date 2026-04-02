@@ -42,8 +42,8 @@ app.config['MYSQL_CURSORCLASS'] = 'DictCursor'
 
 app.config['MAIL_SERVER']='smtp.stackmail.com'
 app.config['MAIL_PORT'] = 587
-app.config['MAIL_USERNAME'] = 'abhishek.pathak01111@gmail.com'
-app.config['MAIL_PASSWORD'] = 'plha brux uyhv kmip'
+app.config['MAIL_USERNAME'] = 'yourmail@gmail.com'
+app.config['MAIL_PASSWORD'] = 'your password'
 app.config['MAIL_USE_TLS'] = True
 app.config['MAIL_USE_SSL'] = False
 
