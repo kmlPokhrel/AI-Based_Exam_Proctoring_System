@@ -286,7 +286,6 @@ git push origin feature/your-feature
 
 **HarmanjotSharma**
 
-[![GitHub](https://img.shields.io/badge/GitHub-Codeabhi096-181717?style=for-the-badge&logo=github)](https://github.com/Codeabhi096)
 
 *If you found this project helpful, please consider giving it a ⭐ star!*
 
