@@ -284,7 +284,7 @@ git push origin feature/your-feature
 
 <div align="center">
 
-**Abhishek**
+**HarmanjotSharma**
 
 [![GitHub](https://img.shields.io/badge/GitHub-Codeabhi096-181717?style=for-the-badge&logo=github)](https://github.com/Codeabhi096)
 
